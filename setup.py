@@ -8,7 +8,7 @@ setup(
     description="An OCR package for extracting text from images and PDFs",
     long_description=open("README.md", encoding="utf-8").read(),
     long_description_content_type="text/markdown",
-    # url="https://github.com/yourusername/ocr_package",  # Replace with your GitHub repo
+    url="https://github.com/singhPratapKavya/ocr-text-extractor",  
     packages=find_packages(),
     install_requires=[
         "openai>=1.0.0",
