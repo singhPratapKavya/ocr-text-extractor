@@ -1,0 +1,5 @@
+openai #Required to interact with OpenAI API.
+python-dotenv #Loads environment variables (.env).
+PyMuPDF #Extracts images from PDF files for OCR processing.
+pytest #Runs unit tests.
+tk #Required for tkinter (file selection dialog).
