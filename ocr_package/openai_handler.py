@@ -19,7 +19,7 @@ def setup_api_key():
         print("🔑 OpenAI API Key is required to use this package.")
         api_key = getpass.getpass("🔒 Enter your OpenAI API key: ").strip()  # Hides input
         set_key(ENV_PATH, "OPENAI_API_KEY", api_key)
-        print("✅ API key saved successfully!")
+        print("✅ API key saved successfully!")  # 🔹 Removed extra print(api_key)
 
     return api_key
 
