@@ -82,17 +82,33 @@ python -m pytest tests/
 1️⃣ OpenAI API Key Not Found
 
 ```bash
-ValueError: API key is missing. Set OPENAI_API_KEY in your environment.
+ValueError: API key is missing. Please run `setup_api_key()`.
 ```
 Solution:
-Run ```bash ocr_package.setup_api_key()``` again.
+Run ```bash import ocr_package```
+```bash ocr_package.setup_api_key()``` again. 
+
+✅ This will prompt you to enter your API key. Once saved, you won’t need to enter it again.
 
 
-2️⃣ pytest Command Not Found
-If pytest isn't recognized, try:
-``` bash
-python -m pytest tests/
+2️⃣ OpenAI API Key Keeps Asking Again
+Issue:
+If the API key keeps asking for input, it may be due to a corrupted or missing .env file.
+Solution: Reset your API key by running:
+
+```bash
+import os
+import shutil
+
+# Delete the stored API key
+shutil.rmtree(os.path.expanduser("~/.ocr_package"), ignore_errors=True)
+
+# Run setup again
+import ocr_package
+ocr_package.setup_api_key()
 ```
+
+✅ This will delete any previous key and allow you to enter it again securely.
 
 3️⃣ File Selection Not Working
 If no file selection dialog appears, ensure:
