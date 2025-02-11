@@ -35,7 +35,7 @@ ocr_package.setup_api_key()
 
 #### Step 2: Select a File
 ```bash
-file_path = ocr_package.select_file()
+file_path = ocr_package.select_files()
 ```
 * This will open a file dialog allowing you to select an image or PDF.
 * The selected file's path will be stored in file_path.

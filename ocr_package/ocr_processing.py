@@ -3,13 +3,14 @@ import json
 import fitz  # PyMuPDF
 import os
 import time
+import shutil  # 🔹 NEW: For copying the input file
 from tkinter import Tk, filedialog
 from .file_handler import create_output_folder
 from .openai_handler import get_client
 
 def select_files():
     """Prompts user to select multiple images or PDFs."""
-    Tk().withdraw()  # Hide the root window
+    Tk().withdraw()
     file_paths = filedialog.askopenfilenames(filetypes=[("Images & PDFs", "*.jpg;*.jpeg;*.png;*.pdf")])
 
     if not file_paths:
@@ -74,6 +75,7 @@ def run_ocr(file_paths):
 
         output_file = os.path.join(file_output_dir, "output.txt")
         full_response_file = os.path.join(file_output_dir, "full_response.json")
+        input_file_copy = os.path.join(file_output_dir, os.path.basename(file_path))  # 🔹 NEW: Path for copied input file
 
         print("🚀 Sending request to OpenAI...")
         time.sleep(1)
@@ -105,6 +107,9 @@ def run_ocr(file_paths):
 
         with open(full_response_file, "w", encoding="utf-8") as f:
             json.dump(response.model_dump(), f, indent=4)
+
+        # 🔹 NEW: Copy the original input file to the output directory
+        shutil.copy(file_path, input_file_copy)
 
         print(f"🎉 OCR Complete for file {index}! Results saved to: {file_output_dir}")
 
