@@ -10,11 +10,9 @@ ENV_PATH = os.path.join(HOME_ENV_DIR, ".env")
 # Ensure `.env` directory exists
 os.makedirs(HOME_ENV_DIR, exist_ok=True)
 
-# Load environment variables
-load_dotenv(dotenv_path=ENV_PATH, override=True)
-
 def setup_api_key():
     """Prompt user for API key once and save it persistently."""
+    load_dotenv(dotenv_path=ENV_PATH, override=True)  # Ensure the .env file is loaded
     api_key = os.getenv("OPENAI_API_KEY")
 
     if not api_key:
@@ -26,10 +24,11 @@ def setup_api_key():
     return api_key
 
 def get_client():
-    """Return OpenAI client with a valid API key without prompting again."""
-    api_key = os.getenv("OPENAI_API_KEY") or setup_api_key()
+    """Return OpenAI client with a valid API key, ensuring it is only set once."""
+    load_dotenv(dotenv_path=ENV_PATH, override=True)  # Load .env file before retrieving API key
+    api_key = os.getenv("OPENAI_API_KEY")
 
     if not api_key:
-        raise ValueError("❌ API key is missing. Please run `setup_api_key()`.")
+        api_key = setup_api_key()  # If not set, ask user to enter API key once
 
     return OpenAI(api_key=api_key)
