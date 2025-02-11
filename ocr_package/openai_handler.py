@@ -15,11 +15,13 @@ def setup_api_key():
     load_dotenv(dotenv_path=ENV_PATH, override=True)  # Ensure the .env file is loaded
     api_key = os.getenv("OPENAI_API_KEY")
 
-    if not api_key:
+    if api_key:
+        print("✅ OpenAI API Key Authenticated")  # 🔹 Instead of printing the key
+    else:
         print("🔑 OpenAI API Key is required to use this package.")
         api_key = getpass.getpass("🔒 Enter your OpenAI API key: ").strip()  # Hides input
         set_key(ENV_PATH, "OPENAI_API_KEY", api_key)
-        print("✅ API key saved successfully!")  # 🔹 Removed extra print(api_key)
+        print("✅ API key saved successfully!")
 
     return api_key
 
