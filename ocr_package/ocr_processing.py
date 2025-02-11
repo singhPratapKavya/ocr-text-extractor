@@ -7,17 +7,17 @@ from tkinter import Tk, filedialog
 from .file_handler import create_output_folder
 from .openai_handler import get_client
 
-def select_file():
-    """Prompts user to select an image or PDF file."""
+def select_files():
+    """Prompts user to select multiple images or PDFs."""
     Tk().withdraw()  # Hide the root window
-    file_path = filedialog.askopenfilename(filetypes=[("Images & PDFs", "*.jpg;*.jpeg;*.png;*.pdf")])
+    file_paths = filedialog.askopenfilenames(filetypes=[("Images & PDFs", "*.jpg;*.jpeg;*.png;*.pdf")])
 
-    if not file_path:
-        print("❌ No file selected. Please try again.")
+    if not file_paths:
+        print("❌ No files selected. Please try again.")
         return None
 
-    print(f"📂 Selected file: {file_path}")
-    return file_path
+    print(f"📂 Selected {len(file_paths)} files.")
+    return file_paths
 
 def encode_image(image_path):
     """Encodes an image as a Base64 string."""
@@ -36,65 +36,76 @@ def extract_first_image_from_pdf(pdf_path):
             return base64.b64encode(image_bytes).decode("utf-8")
     return None  # No image found in PDF
 
-def run_ocr(file_path):
-    """Processes the selected document and performs OCR with live updates."""
-    if not file_path:
-        print("❌ No file provided. Exiting...")
+def run_ocr(file_paths):
+    """Processes multiple documents and performs OCR on each."""
+    if not file_paths:
+        print("❌ No files provided. Exiting...")
         return
 
-    print("🔄 Processing file...")
+    print("🔄 Processing files...")
     time.sleep(1)
 
-    file_extension = os.path.splitext(file_path)[1].lower()
+    # Create a main output directory for the batch run
+    batch_output_dir = create_output_folder()
+    
+    for index, file_path in enumerate(file_paths, start=1):
+        print(f"📄 Processing file {index}/{len(file_paths)}: {file_path}")
 
-    if file_extension in [".jpg", ".jpeg", ".png"]:
-        base64_image = encode_image(file_path)
-    elif file_extension == ".pdf":
-        base64_image = extract_first_image_from_pdf(file_path)
-        if not base64_image:
-            print("❌ No images found in the PDF. Exiting...")
-            return
-    else:
-        print("❌ Unsupported file format. Please upload a JPG, PNG, or PDF.")
-        return
+        file_extension = os.path.splitext(file_path)[1].lower()
+        base64_image = None
 
-    print("✅ File encoded successfully! Preparing OCR request...")
-    time.sleep(1)
+        if file_extension in [".jpg", ".jpeg", ".png"]:
+            base64_image = encode_image(file_path)
+        elif file_extension == ".pdf":
+            base64_image = extract_first_image_from_pdf(file_path)
+            if not base64_image:
+                print(f"❌ No images found in {file_path}. Skipping...")
+                continue
+        else:
+            print(f"❌ Unsupported file format: {file_path}. Skipping...")
+            continue
 
-    # Create structured output directory
-    output_dir = create_output_folder()
-    output_file = os.path.join(output_dir, "output.txt")
-    full_response_file = os.path.join(output_dir, "full_response.json")
+        print("✅ File encoded successfully! Preparing OCR request...")
+        time.sleep(1)
 
-    print("🚀 Sending request to OpenAI...")
-    time.sleep(1)
+        # Create an output directory for each file inside the batch folder
+        file_output_dir = os.path.join(batch_output_dir, f"file_{index}")
+        os.makedirs(file_output_dir, exist_ok=True)
 
-    # Get OpenAI client (does not prompt for API key again)
-    client = get_client()
+        output_file = os.path.join(file_output_dir, "output.txt")
+        full_response_file = os.path.join(file_output_dir, "full_response.json")
 
-    # Send to OpenAI
-    response = client.chat.completions.create(
-        model="gpt-4o-mini",
-        messages=[
-            {
-                "role": "user",
-                "content": [
-                    {"type": "text", "text": "Perform OCR and handwriting text recognition (HTR) on the provided document. Extract all text accurately, correct spelling mistakes, and structure the output in a clear, readable format."},
-                    {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{base64_image}"}},
-                ],
-            }
-        ],
-        max_tokens=500,
-    )
+        print("🚀 Sending request to OpenAI...")
+        time.sleep(1)
 
-    # Process the extracted text
-    extracted_text = response.choices[0].message.content.strip().replace("\n\n", "\n").replace("\n---\n", "")
+        # Get OpenAI client
+        client = get_client()
 
-    # Save output files
-    with open(output_file, "w", encoding="utf-8") as f:
-        f.write(extracted_text)
+        # Send to OpenAI
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "text", "text": "Perform OCR and handwriting text recognition (HTR) on the provided document. Extract all text accurately, correct spelling mistakes, and structure the output in a clear, readable format."},
+                        {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{base64_image}"}} if base64_image else None,
+                    ],
+                }
+            ],
+            max_tokens=500,
+        )
 
-    with open(full_response_file, "w", encoding="utf-8") as f:
-        json.dump(response.model_dump(), f, indent=4)
+        # Process the extracted text
+        extracted_text = response.choices[0].message.content.strip().replace("\n\n", "\n").replace("\n---\n", "")
 
-    print(f"🎉 OCR Complete! Results saved to: {output_dir}")
+        # Save output files
+        with open(output_file, "w", encoding="utf-8") as f:
+            f.write(extracted_text)
+
+        with open(full_response_file, "w", encoding="utf-8") as f:
+            json.dump(response.model_dump(), f, indent=4)
+
+        print(f"🎉 OCR Complete for file {index}! Results saved to: {file_output_dir}")
+
+    print(f"\n✅ All OCR processing completed! Results stored in: {batch_output_dir}")
