@@ -69,7 +69,7 @@ def run_ocr(file_path):
     print("🚀 Sending request to OpenAI...")
     time.sleep(1)
 
-    # Get OpenAI client
+    # Get OpenAI client (does not prompt for API key again)
     client = get_client()
 
     # Send to OpenAI

@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="ocr_package",  # Name of the package
-    version="0.1",  # Version number
+    version="0.2",  # Version number
     author="Kavya Pratap Singh",
     author_email="kavya.pratap.797@gmail.com",
     description="An OCR package for extracting text from images and PDFs",
